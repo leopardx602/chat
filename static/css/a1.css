@@ -1,0 +1,101 @@
+#content {
+  width: 500px;
+  height: 200px;
+  border: 2px solid #000;
+  overflow: auto;
+  margin: 10px;
+}
+
+#inputText {
+  margin: 10px;
+  width: 500px;
+  height: 100px;
+  border: 2px solid #000
+}
+
+.remote_text {
+  word-break: break-all;
+  max-width: 150px;
+  width: auto;
+  display: inline-block !important;
+  display: inline;
+  height: auto;
+  max-height: 100px;
+  padding: 5px;
+  border-radius: 10px;
+  position: relative;
+  margin-left: 20px;
+  margin-right: 80px;
+  color: #eee;
+  background-color: #4179f1;
+}
+
+.remote_text::before {
+  content: "";
+  position: absolute;
+  top: 7px;
+  border-top: 2px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-right: 10px solid #4179f1;
+  left: -10px;
+}
+
+.local_text {
+  word-break: break-all;
+  max-width: 150px;
+  width: auto;
+  display: inline-block !important;
+  display: inline;
+  height: auto;
+  max-height: 100px;
+  padding: 5px;
+  border-radius: 10px;
+  position: relative;
+  order: -1;
+  margin-left: 80px;
+  margin-right: 20px;
+  background-color: #aaa;
+}
+
+.local_text::after {
+  content: "";
+  position: absolute;
+  top: 7px;
+  border-top: 2px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-left: 10px solid #aaa;
+  right: -10px;
+}
+
+.remote_box {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 15px;
+}
+
+.local_box {
+  display: flex;
+  margin-bottom: 15px;
+  justify-content: flex-end;
+}
+
+.head_sticker {
+  width: 30px;
+  height: 30px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.pic {
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+img {
+  width: 100%;
+  vertical-align: middle;
+}
+
+.gif {
+  width: 45px;
+}
