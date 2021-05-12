@@ -69,7 +69,7 @@ function sticker() {
   }
 }
 
-function insertOld(msg) {
+function sendOld(msg) {
   data = `<div class="local_box">`
   data += "<div class='local_text'>" + msg + "</div>"
   data += `</div>`
@@ -77,23 +77,23 @@ function insertOld(msg) {
 }
 
 function oldMsg() {
-  preHeight = $("#content")[0].scrollHeight
-  preTop = $("#content")[0].scrollTop
-
   $.get("/oldMsg", function(data) {
     if (data) {
+      preHeight = $("#content")[0].scrollHeight
+      preTop = $("#content")[0].scrollTop
+
       data = data.reverse()
       Object.keys(data).forEach(key => {
         if (data[key]) {
-          $("#content").prepend(insertOld(data[key]))
+          $("#content").prepend(sendOld(data[key]))
             //console.log(key, data[key]);
         }
       });
+
+      nowHeight = $("#content")[0].scrollHeight
+      $("#content").scrollTop(nowHeight - preHeight + preTop);
+      console.log('height1:', preHeight)
+      console.log('height2:', nowHeight)
     }
   });
-
-  nowHeight = $("#content")[0].scrollHeight
-  $("#content").scrollTop(nowHeight - preHeight + preTop);
-  console.log('height1:', preHeight)
-  console.log('height2:', nowHeight)
 }
