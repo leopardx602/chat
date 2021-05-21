@@ -64,7 +64,7 @@ function sticker() {
   data = document.getElementById("inputText").innerHTML
   count = (data.split("<img class=")).length - 1
   if (count < 3) {
-    data = "<img class='gif' src='../static/img/tiger/A1.gif'>"
+    data = "<img class='gif' src='../static/img/tiger/A3.gif'>"
     $("#inputText").append(data);
   }
 }
@@ -96,4 +96,87 @@ function oldMsg() {
       console.log('height2:', nowHeight)
     }
   });
+}
+
+
+$(document).ready(() => {
+  $('#sticker').on('click', () => {
+    if ($('#stickers').html().length != 0) {
+      $('#stickers').html('')
+      return
+    }
+    text = ''
+    text += '<div id="sticker_head">'
+    text += '<div>經典</div>'
+    text += '<div onclick=sticker_change("tiger")>小虎</div>'
+    text += '<div onclick=sticker_change("egg")>雞蛋</div>'
+    text += '<div onclick=sticker_change("fox")>狐狸</div>'
+    text += '<div id="sticker_close">關閉</div>'
+    text += '</div>'
+    text += '<div id="stickers_body">'
+
+    for (i = 1; i <= 50; i++) {
+      text += `<img class='gifIndex' id='tiger${i}' src='../static/img/tiger/tiger${i}.png'>`
+        //console.log(`A${i}.gif`)
+    }
+    text += '</div>'
+      //console.log(document.getElementById('sticker').offsetLeft)
+      //console.log(document.getElementById('sticker').offsetTop)
+    $('#stickers').html(text)
+
+    $('.gifIndex').each(function() {
+      $(this).hover(function() {
+        path = $(this).attr('src').replace('.png', '.gif')
+        $(this).attr('src', path);
+      }, function() {
+        path = $(this).attr('src').replace('.gif', '.png')
+        $(this).attr('src', path);
+      })
+
+      $(this).on('click', () => {
+        id = $(this).attr('id')
+        data = document.getElementById("inputText").innerHTML
+        count = (data.split("<img class=")).length - 1
+        if (count < 3) {
+          data = `<img class='gif' src='../static/img/tiger/${id}.gif'>`
+          $("#inputText").append(data);
+        }
+      });
+    })
+
+    $('#sticker_close').on('click', () => {
+      $('#stickers').html('')
+    });
+  });
+})
+
+
+function sticker_change(type) {
+  console.log(type)
+  text = ''
+  for (i = 1; i <= 50; i++) {
+    text += `<img class='gifIndex' id='${type}${i}' src='../static/img/${type}/${type}${i}.png'>`
+      //console.log(`A${i}.gif`)
+  }
+  $('#stickers_body').html(text)
+
+  $('.gifIndex').each(function() {
+    $(this).hover(function() {
+      path = $(this).attr('src').replace('.png', '.gif')
+      $(this).attr('src', path);
+    }, function() {
+      path = $(this).attr('src').replace('.gif', '.png')
+      $(this).attr('src', path);
+    })
+
+    $(this).on('click', () => {
+      id = $(this).attr('id')
+      data = document.getElementById("inputText").innerHTML
+      count = (data.split("<img class=")).length - 1
+      if (count < 3) {
+        data = `<img class='gif' src='../static/img/${type}/${id}.gif'>`
+        $("#inputText").append(data);
+      }
+    });
+  })
 }

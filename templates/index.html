@@ -6,17 +6,36 @@
   <title>Chat</title>
   <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
   <script src="../static/js/a1.js" type="text/javascript"></script>
+  <script src="https://kit.fontawesome.com/c416c8b21d.js" crossorigin="anonymous"></script>
   <link rel="stylesheet " type="text/css " href="../static/css/a1.css ">
 </head>
 
 <body style="background-color: #bbb;">
-  <div id="content"></div>
-  <div id="inputText" contenteditable="true"></div>
+  <div id="chat">
+    <div id="content">
+    </div>
+    <div id="tools">
+      <div>
+        <i class="fas fa-paperclip" style="font-size: 25px;"></i>
+      </div>
+      <div id="photo">
+        <i class="fas fa-image" style="font-size: 25px;"></i>
+      </div>
+      <div id="sticker">
+        <i class="far fa-smile" style="font-size: 25px;"></i>
+      </div>
+      <div id="stickers"></div>
+    </div>
+    <div id="inputText" contenteditable="true"></div>
 
-  <input type="button" value="sticker" onclick="sticker()" />
-  <input type="button" value="send_left" onclick="send()" />
-  <input type="button" value="send_right" onclick="send_r()" />
-  <input type="button" value="history" onclick="oldMsg()" />
+    <input type="button" value="sticker" onclick="sticker()" />
+    <input type="button" value="send_left" onclick="send()" />
+    <input type="button" value="send_right" onclick="send_r()" />
+    <input type="button" value="history" onclick="oldMsg()" />
+    <input type="button" value='start' id='test1' />
+    <input type="button" value='stop' id='test2' />
+
+  </div>
 
 </body>
 
