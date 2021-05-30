@@ -1,0 +1,17 @@
+* {
+  font-weight: bold;
+}
+
+button {
+  padding: 3px;
+}
+
+button.active,
+button:hover {
+  cursor: pointer;
+}
+
+.btn.active,
+.btn:hover {
+  cursor: pointer;
+}

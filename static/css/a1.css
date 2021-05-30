@@ -1,6 +1,43 @@
+#notifyDiv {
+  position: absolute;
+}
+
+#notify_cell {
+  top: 50px;
+  background-color: #66bb6a;
+  color: #FFF;
+  width: 200px;
+  border-radius: 10px;
+  margin: 5px;
+  padding: 5px;
+  font-weight: bold;
+  text-align: center;
+  animation-name: ooxx;
+  animation-duration: 1s;
+}
+
+#notifyDiv>div>div {
+  margin: 5px;
+  font-size: 20px;
+}
+
+@keyframes ooxx {
+  from {
+    width: 0px;
+    margin-left: 100px;
+    left: 700px;
+  }
+  to {
+    width: 200px;
+    margin-left: 5px;
+    left: 40px;
+  }
+}
+
 #content {
+  padding: 5px;
   width: 95%;
-  height: 200px;
+  height: 250px;
   border: 2px solid #000;
   overflow: auto;
   margin: 10px;
@@ -10,8 +47,9 @@
 
 #inputText {
   margin: 10px;
+  padding: 5px;
   width: 95%;
-  height: 100px;
+  height: 90px;
   border: 2px solid #000;
   font-size: 16px;
   font-weight: bold;
@@ -25,7 +63,7 @@
   display: inline-block !important;
   display: inline;
   height: auto;
-  max-height: 100px;
+  /*max-height: 100px;*/
   padding: 5px;
   border-radius: 10px;
   position: relative;
@@ -52,7 +90,7 @@
   display: inline-block !important;
   display: inline;
   height: auto;
-  max-height: 100px;
+  /*max-height: 100px;*/
   padding: 5px;
   border-radius: 10px;
   position: relative;
@@ -97,8 +135,9 @@
 }
 
 img {
-  width: 100%;
-  vertical-align: middle;
+  width: 32px !important;
+  height: 32px;
+  vertical-align: bottom !important;
 }
 
 .gifIndex {
@@ -114,41 +153,64 @@ img {
 #chat {
   border: 1px solid red;
   width: 550px;
+  display: flex;
+  flex-direction: column;
+}
+
+#chat>div {
+  margin: 5px;
+}
+
+#chatHead {
+  height: 20px;
 }
 
 #tools {
   width: 95%;
-  border: 1px solid red;
-  /*display: inline;*/
-  text-align: end;
+  display: flex;
+  justify-content: flex-end;
 }
 
 #tools>div {
-  display: inline;
+  margin: 3px;
 }
 
 #sticker {
   position: relative;
 }
 
-#sticker_head {
-  text-align: start;
+#stickers {
+  display: flex;
+  flex-direction: column;
 }
 
-#sticker_head>div {
-  display: inline;
+#stickers_head {
+  display: flex;
+  width: 100%;
+}
+
+#stickers_head>div {
+  display: flex;
+}
+
+.left {
+  flex: none;
+}
+
+.right {
+  flex: 1;
+  justify-content: flex-end;
+}
+
+#stickers_head>div>div {
   padding-left: 3px;
   padding-right: 3px;
   font-size: 20px;
   font-weight: bold;
 }
 
-#sticker_close {
-  float: right;
-}
-
-#sticker_head>div.active,
-#sticker_head>div:hover {
+#stickers_head>div>div.active,
+#stickers_head>div>div:hover {
   text-shadow: 0 0 10px #FFFFFF;
   cursor: pointer;
 }
@@ -160,4 +222,41 @@ img {
   max-width: 450px;
   text-align: start;
   background-color: rgba(100, 100, 100, 0.4);
+}
+
+#shell {
+  display: flex;
+}
+
+#friends {
+  width: 150px;
+  border: 1px solid red;
+}
+
+#friends_head {
+  background-color: #777;
+  text-align: center;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+#friends_body {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+#friends_body>div {
+  padding: 5px;
+  flex: 1;
+  text-align: center;
+}
+
+#friends_body>div.active,
+#friends_body>div:hover {
+  text-shadow: 0 0 10px #FFFFFF;
+  box-shadow: inset 0 0 20px #FFFFFF;
+  cursor: pointer;
 }
