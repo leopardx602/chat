@@ -5,6 +5,45 @@ import traceback
 
 lock = threading.Lock()
 
+
+class SQL():
+    def __init__(self):
+        self.db = ''
+        self.cursor = ''
+
+    def connect(self):
+        self.db = pymysql.connect(
+            host='127.0.0.1',
+            port=3306,
+            user='root',
+            password='lisa1219',
+            database='users',
+            charset='utf8',
+            cursorclass=pymysql.cursors.DictCursor)
+        self.cursor = self.db.cursor()  
+
+    def command(self, cmd):
+        try:
+            self.connect()
+            print(cmd)
+            self.cursor.execute(cmd) 
+            self.db.commit()
+            self.db.close()
+            return self.cursor.fetchall()
+        except:
+            traceback.print_exc()
+            self.db.rollback()
+            return ''
+
+    def drop(self, userID):
+        self.command('drop table {}'.format(userID))
+
+    def showTable(self):
+        tables = []
+        for data in self.command("show tables"):
+            tables.append(data['Tables_in_users'])
+        return tables
+
 class Users():
     def __init__(self):
         self.db = ''
