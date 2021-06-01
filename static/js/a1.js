@@ -268,3 +268,39 @@ function updateMsg() {
     });
   }, 1000);
 }
+
+$(document).ready(() => {
+  $("#addFriend").click(() => {
+    text = `<div id="addFriendForm">`
+    text += `<div id="addFriendForm_head">`
+    text += `<div id="addFriendForm_title">好友邀請</div>`
+    text += `<div id="addFriendForm_close" class="btn"><i class="fas fa-times"></i></div>`
+    text += `</div>`
+    text += `<div>`
+    text += `<input type="text" placeholder="好友ID" maxlength="20">`
+    text += `</div>`
+    text += `<div>`
+    text += `<button>發出邀請</button>`
+    text += `</div>`
+    text += `</div>`
+    $("#centerDiv").html(text)
+    $("#addFriendForm_close").click(() => {
+      $("#centerDiv").html("")
+    })
+  })
+
+})
+
+$(document).ready(() => {
+  $("#forget").click(() => {
+    text = '<div id="notify_cell">'
+    text += '<div>自己想</div>'
+    text += "<img class='gif' src='../static/img/tiger/tiger50.gif'>"
+    text += '</div>'
+    document.getElementById('notifyDiv').innerHTML = text
+    window.setTimeout((() =>
+      document.getElementById('notifyDiv').innerHTML = ''
+      //console.log("Hello!") 
+    ), 5000);
+  });
+});

@@ -8,8 +8,9 @@ lock = threading.Lock()
 
 class SQL():
     def __init__(self):
-        self.db = ''
-        self.cursor = ''
+        #self.db = ''
+        #self.cursor = ''
+        self.database = ''
 
     def connect(self):
         self.db = pymysql.connect(
@@ -17,7 +18,7 @@ class SQL():
             port=3306,
             user='root',
             password='lisa1219',
-            database='users',
+            database=self.database,
             charset='utf8',
             cursorclass=pymysql.cursors.DictCursor)
         self.cursor = self.db.cursor()  
@@ -44,43 +45,9 @@ class SQL():
             tables.append(data['Tables_in_users'])
         return tables
 
-class Users():
+class Users(SQL):
     def __init__(self):
-        self.db = ''
-        self.cursor = ''
-
-    def connect(self):
-        self.db = pymysql.connect(
-            host='127.0.0.1',
-            port=3306,
-            user='root',
-            password='lisa1219',
-            database='users',
-            charset='utf8',
-            cursorclass=pymysql.cursors.DictCursor)
-        self.cursor = self.db.cursor()  
-
-    def command(self, cmd):
-        try:
-            self.connect()
-            print(cmd)
-            self.cursor.execute(cmd) 
-            self.db.commit()
-            self.db.close()
-            return self.cursor.fetchall()
-        except:
-            traceback.print_exc()
-            self.db.rollback()
-            return ''
-
-    def drop(self, userID):
-        self.command('drop table {}'.format(userID))
-
-    def showTable(self):
-        tables = []
-        for data in self.command("show tables"):
-            tables.append(data['Tables_in_users'])
-        return tables
+        self.database = 'users'
 
     def create(self, userID):
         sql = """CREATE TABLE {} (
@@ -94,16 +61,7 @@ class Users():
     def insert(self, userID, friendID, roomID):
         sql = """INSERT INTO {}(friendID, roomID)
             VALUES ('{}', '{}')""".format(userID, friendID, roomID)
-        print(sql)
-        try:
-            self.connect()
-            self.cursor.execute(sql)
-            self.db.commit()
-            self.db.close()
-        except:
-            traceback.print_exc()
-            self.db.rollback()
-
+        self.command(sql)
 
     def select(self, userID, value=''):
         self.connect()
@@ -129,47 +87,13 @@ class Users():
     def roomID(self, userID, friendID):
         self.connect()
         sql = "SELECT roomID from {} where friendID='{}'".format(userID, friendID)
-        print(sql)
-        self.cursor.execute(sql)
-        results = self.cursor.fetchone()
-        return results['roomID']
+        data = self.command(sql)
+        #print(data)
+        return data[0]['roomID']
 
-
-
-class Rooms():
+class Rooms(SQL):
     def __init__(self):
-        self.db = ''
-        self.cursor = ''
-
-    def connect(self):
-        self.db = pymysql.connect(
-            host='127.0.0.1',
-            port=3306,
-            user='root',
-            password='lisa1219',
-            database='rooms',
-            charset='utf8',
-            cursorclass=pymysql.cursors.DictCursor)
-        self.cursor = self.db.cursor()
-
-    def command(self, cmd):
-        try:
-            self.connect()
-            print(cmd)
-            self.cursor.execute(cmd) 
-            self.db.commit()
-            self.db.close()
-            return self.cursor.fetchall()
-        except:
-            traceback.print_exc()
-            self.db.rollback()
-            return ''
-
-    def drop(self, userID):
-        self.command('drop table {}'.format(userID))
-
-    def showTable(self):
-        return self.command("show tables")
+        self.database = 'rooms'
 
     def create(self, userID):
         sql = """CREATE TABLE {} (
@@ -240,35 +164,10 @@ class Rooms():
         self.db.close()
         return results
 
-class Invitation():
+class Invitation(SQL):
     def __init__(self):
-        self.db = ''
-        self.cursor = ''
-
-    def connect(self):
-        self.db = pymysql.connect(
-            host='127.0.0.1',
-            port=3306,
-            user='root',
-            password='lisa1219',
-            database='invitation',
-            charset='utf8',
-            cursorclass=pymysql.cursors.DictCursor)
-        self.cursor = self.db.cursor()  
-
-    def command(self, cmd):
-        try:
-            self.connect()
-            print(cmd)
-            self.cursor.execute(cmd) 
-            self.db.commit()
-            self.db.close()
-            return self.cursor.fetchall()
-        except:
-            traceback.print_exc()
-            self.db.rollback()
-            return ''
-
+        self.database = 'invitation'
+        
     def create(self, userID):
         sql = """CREATE TABLE {} (
           friendID char(20) NOT NULL,
@@ -276,10 +175,11 @@ class Invitation():
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8;""".format(userID)
         self.command(sql)
 
-    def drop(self, userID):
-        self.command('drop table {}'.format(userID))
 
 
+user = Users()
+#user.insert('chen02', 'chen01', 'room01')
+#user.select('chen01')
 room = Rooms()
 #data = room.showTable()
 #print(data)
