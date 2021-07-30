@@ -3,7 +3,10 @@ import pymysql
 import threading
 import traceback
 
+from config import db_config
+
 lock = threading.Lock()
+
 
 
 class SQL():
@@ -16,8 +19,8 @@ class SQL():
         self.db = pymysql.connect(
             host='127.0.0.1',
             port=3306,
-            user='root',
-            password='lisa1219',
+            user=db_config['user'],
+            password=db_config['password'],
             database=self.database,
             charset='utf8',
             cursorclass=pymysql.cursors.DictCursor)

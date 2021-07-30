@@ -34,6 +34,20 @@
   }
 }
 
+#top {
+  display: flex;
+  justify-content: space-between;
+}
+
+#topLeft {
+  display: flex;
+  justify-content: flex-end;
+}
+
+#topLeft>div {
+  margin: 5px;
+}
+
 #content {
   padding: 5px;
   width: 95%;
