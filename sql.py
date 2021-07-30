@@ -7,8 +7,6 @@ from config import db_config
 
 lock = threading.Lock()
 
-
-
 class SQL():
     def __init__(self):
         #self.db = ''
@@ -40,7 +38,7 @@ class SQL():
             return ''
 
     def drop(self, userID):
-        self.command('drop table {}'.format(userID))
+        self.command(f'drop table {userID}')
 
     def showTable(self):
         tables = []
@@ -53,28 +51,29 @@ class Users(SQL):
         self.database = 'users'
 
     def create(self, userID):
-        sql = """CREATE TABLE {} (
+        sql = f"""CREATE TABLE {userID} (
           friendID char(20) NOT NULL,
           roomID char(20) NOT NULL,
           nickName char(20) DEFAULT NULL,
           PRIMARY KEY (friendID)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8;""".format(userID)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8;"""
         self.command(sql)
 
     def insert(self, userID, friendID, roomID):
-        sql = """INSERT INTO {}(friendID, roomID)
-            VALUES ('{}', '{}')""".format(userID, friendID, roomID)
+        sql = f"""INSERT INTO {userID}(friendID, roomID)
+            VALUES ('{friendID}', '{roomID}')"""
         self.command(sql)
 
     def select(self, userID, value=''):
         self.connect()
         if not value:
-            sql = "SELECT * from {}".format(userID)
+            sql = f"SELECT * from {userID}"
         else:
-            sql = "SELECT {} from {}".format(value, userID)
+            sql = f"SELECT {value} from {userID}"
 
         self.cursor.execute(sql)
         results = self.cursor.fetchall()
+        self.db.close()
         #print(results)
         if value:
             list1 = []
@@ -84,12 +83,12 @@ class Users(SQL):
             return list1
         else:
             for row in results:
-                print (row)
-        self.db.close()
+                print(row)
+        return results
 
     def roomID(self, userID, friendID):
         self.connect()
-        sql = "SELECT roomID from {} where friendID='{}'".format(userID, friendID)
+        sql = f"SELECT roomID from {userID} where friendID='{friendID}'"
         data = self.command(sql)
         #print(data)
         return data[0]['roomID']
@@ -99,33 +98,31 @@ class Rooms(SQL):
         self.database = 'rooms'
 
     def create(self, userID):
-        sql = """CREATE TABLE {} (
+        sql = f"""CREATE TABLE {userID} (
           id int(10) NOT NULL AUTO_INCREMENT,
           userID char(20) NOT NULL,
-          time char(20) NOT NULL,
           message text DEFAULT NULL,
+          time TIMESTAMP NOT NULL,
           PRIMARY KEY (id)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8;""".format(userID)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8;"""
         self.command(sql)
 
-    def insert(self, roomID, userID, time, message):
-        sql = """INSERT INTO {}(userID, time, message)
-            VALUES ('{}', '{}', '{}')""".format(roomID, userID, time, message)
+    def insert(self, roomID, userID, message):
+        sql = f"""INSERT INTO {roomID}(userID, message)
+            VALUES ('{userID}', '{message}')"""
         self.command(sql)
         
     def loadMsg(self, roomID, loadMsgNumber = 5):
         self.connect()
         #sql = "SELECT * from {}".format(roomID)
-        sql = "SELECT * from {} ORDER BY id DESC Limit 0, {}".format(roomID, loadMsgNumber)
+        sql = f"SELECT * from {roomID} ORDER BY id DESC Limit 0, {loadMsgNumber}"
         print(sql)
         self.cursor.execute(sql)
         results = self.cursor.fetchall()
-        results = results[::-1]
-        #print(results)
-        for row in results:
-            print(row)
+
+        #print(results[::-1])
         self.db.close()
-        return results
+        return results[::-1]
 
     def history(self, roomID, ID):
         if ID <= 1:
@@ -136,7 +133,7 @@ class Rooms(SQL):
         msgNumber = ID - 1 if ID <= msgNumber else msgNumber
 
         start = ID-1-msgNumber if ID-1-msgNumber>0 else 0
-        sql = "SELECT * from {} ORDER BY id Limit {}, {}".format(roomID, start, msgNumber)
+        sql = f"SELECT * from {roomID} ORDER BY id Limit {start}, {msgNumber}"
         try:
             self.cursor.execute(sql)
             results = self.cursor.fetchall()
@@ -151,7 +148,7 @@ class Rooms(SQL):
     def newMsg(self, roomID, ID):
         #ID = ID-3
         self.connect()
-        sql = "SELECT * from {} ORDER BY id DESC Limit 0, 1".format(roomID)
+        sql = f"SELECT * from {roomID} ORDER BY id DESC Limit 0, 1"
         self.cursor.execute(sql)
         results = self.cursor.fetchone()
         endID = results['id']
@@ -160,7 +157,7 @@ class Rooms(SQL):
             return ''
         
         loadMsgNumber = endID - ID
-        sql = "SELECT * from {} ORDER BY id Limit {}, {}".format(roomID, ID, loadMsgNumber)
+        sql = f"SELECT * from {roomID} ORDER BY id Limit {ID}, {loadMsgNumber}"
         self.cursor.execute(sql)
         results = self.cursor.fetchall()
         print(results)
@@ -178,22 +175,6 @@ class Invitation(SQL):
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8;""".format(userID)
         self.command(sql)
 
-
-
-user = Users()
-#user.insert('chen02', 'chen01', 'room01')
-#user.select('chen01')
-room = Rooms()
-#data = room.showTable()
-#print(data)
-
-invi = Invitation()
-#invi.drop('chen01')
-#invi.drop('chen02')
-#invi.create('chen01')
-#invi.create('chen02')
-
-
 def signUp(userID):
     lock.acquire()
     user = Users()
@@ -205,9 +186,8 @@ def signUp(userID):
         user.create(userID)
         invi.create(userID)
     else:
-        print('{} repeated'.format(userID))
+        print(f'{userID} repeated')
     lock.release()
-
 
 def addFriend(userID, otherID):
     user = Users()
@@ -216,41 +196,55 @@ def addFriend(userID, otherID):
         pass
     print(data)
 
-#addFriend(1, 2)
+if __name__ == '__main__':
+
+    user = Users()
+    #user.create('chen01')
+    #user.create('chen02')
+    #user.create('anny')
+    
+    #user.insert('chen01', 'chen02', 'room01')
+    #user.insert('chen02', 'chen01', 'room01')
+    #user.insert('chen01', 'anny', 'room02')
+    #user.insert('anny', 'chen01', 'room02')
+
+    #user.select('chen01')
 
 
+    #room = Rooms()
+    #data = room.showTable()
+    #print(data)
 
-tmp = time.time()
-tmp2 = time.localtime(tmp)
-tmp3 = time.strftime("%y%m%d%H%M%S", tmp2)
-        
-#user = Users()
-#user.command('ALTER TABLE chen01 ADD nickName VARCHAR(20);')
+    #invi = Invitation()
+    #invi.drop('chen01')
+    #invi.drop('chen02')
+    #invi.create('chen01')
+    #invi.create('chen02')
 
-room = Rooms()
-#room.create('room02')
-#room.drop('room02')
-#room.select('room01')
+    #addFriend(1, 2)
+
+    #user = Users()
+    #user.command('ALTER TABLE chen01 ADD nickName VARCHAR(20);')
+
+    room = Rooms()
+    #room.create('room01')
+    #room.create('room02')
+    #room.insert('room01', 'chen01', 'Hello, I am chen01.')
+    #room.insert('room01', 'chen02', 'Hello, I am chen02.')
+    #room.insert('room02', 'chen01', 'Hello, I am chen01.')
+    #room.insert('room02', 'anny', 'Hello, I am anny.')
+
+    #room.insert('room01', 'chen02', 'How do you do?')
+    #room.insert('room01', 'chen01', 'Not bad, how about you?')
+    #room.insert('room01', 'chen02', 'Me too')
+    #room.insert('room01', 'chen02', 'I am software engineer.')
+    #room.insert('room01', 'chen02', 'And goot at python')
+    #room.insert('room01', 'chen02', 'what do you do')
+    #room.insert('room01', 'chen01', 'I am student now in Chiao Tung Unervisity.')
+
+    
+    #room.drop('room01')
+    #room.select('room01')
 
 
-
-def update():
-    # Prepare SQL query to UPDATE required records
-    sql = "UPDATE employee SET AGE = AGE + 1 \
-                            WHERE SEX = '%c'" % ('M')
-    try:
-        cursor.execute(sql)
-        db.commit()
-    except:
-        traceback.print_exc()
-        db.rollback()
-
-def delete():
-    sql = "DELETE FROM EMPLOYEE WHERE AGE > '%d'" % (40)
-    try:
-       cursor.execute(sql)
-       db.commit()
-    except:
-       db.rollback()
-
-#db.close()
+    #db.close()

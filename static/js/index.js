@@ -1,9 +1,176 @@
 var startID = 0
 var endID = 0
-var nowMsg = ''
 var myID = ''
 var roomID = ''
 var nowFriendID = ''
+
+var messageID = {} // {'chen01':{'startID':1, 'endID':10, 'text':[]}, 'chen02':{'startID':5, 'endID':8, 'text':[]}}
+
+var tickers = []
+
+var socket = io();
+
+$(document).ready(function () {
+  socket.on('connect', function () {
+    socket.emit('get_friendID_list');
+  });
+
+  socket.on('userID', function (data) {
+    myID = data
+    console.log('myID', myID)
+  });
+
+  socket.on('show_friendID_list', function (data) {
+    text = ''
+    Object.keys(data).forEach(key => {
+      text += `<div onclick=loadRoom('${data[key]}')>${data[key]}</div>`
+      messageID[data[key]] = {}
+    });
+    console.log(messageID)
+    $('#friends_body').html(text)
+  })
+
+
+  socket.on('show_room_message', function (data) {
+    console.log('show_room_message')
+    var friendID = nowFriendID
+    messageID[friendID] = {'startID':0, 'endID':0, 'text':[]}
+
+    var text = ''
+    Object.keys(data).forEach(key => {
+      //console.log(key, data[key]);
+      messageID[friendID]['text'].push(data[key])
+      //messageID[friendID]['text'].unshift(data[key]['message'])
+      if (data[key]['userID'] == myID) {
+        text += "<div class='local_box'><div class='local_text'>"
+        text += `${data[key]['message']}</div></div>`
+      } else {
+        text += `<div class='remote_box'><div class='remote_text'>`
+        text += `${data[key]['message']}</div></div>`
+      }
+    });
+    
+    // if data[0]['id'] < messageID[friendID]['startID']
+    messageID[friendID]['startID'] = data[0]['id']
+    messageID[friendID]['endID'] = data[data.length - 1]['id']
+    
+    $("#content").html(text)
+    $("#content").scrollTop($("#content")[0].scrollHeight);
+  })
+
+  socket.on('show_old_message', function (data) {
+    if (data) {
+      preHeight = $("#content")[0].scrollHeight
+      preTop = $("#content")[0].scrollTop
+
+      var friendID = nowFriendID
+      //data = data.reverse()
+      console.log('history', data)
+      var tmp = []
+      let text = ''
+      Object.keys(data).forEach(key => {
+        tmp.push(data[key])
+
+        if (data[key]['userID'] == myID) {
+          text += "<div class='local_box'><div class='local_text'>"
+          text += `${data[key]['message']}</div></div>`
+        } else {
+          text += `<div class='remote_box'><div class='remote_text'>`
+          text += `${data[key]['message']}</div></div>`
+        }
+
+        if (data[key]['id'] < messageID[friendID]['startID'])
+          messageID[friendID]['startID'] = data[key]['id']
+      });
+
+      messageID[friendID]['text'] = tmp.concat(messageID[friendID]['text']);
+
+      $('#content').prepend(text)
+      startID = data[0]['id']
+
+      nowHeight = $("#content")[0].scrollHeight
+      $("#content").scrollTop(nowHeight - preHeight + preTop);
+      console.log('height1:', preHeight)
+      console.log('height2:', nowHeight)
+    }
+  })
+
+  socket.on('show_new_message', function (data) {
+    console.log('show_new_message')
+    var friendID = nowFriendID
+    messageID[friendID]['text'].push(data)
+    //!@img@!tiger01!@/img<@!
+
+    var msg = data['message']
+    var count = (msg.split("!=img=!")).length - 1
+
+    for (i = 0; i < count; i++) {
+      start = msg.search("!=img=!")
+      end = msg.search("!=/img=!")
+      tmp = msg.slice(start, end + 8);
+      console.log('tmp', tmp)
+      var img = msg.slice(start+7, end-2)
+      var id = parseInt(msg.slice(end-2, end), 10)
+      msg = msg.replace(tmp, `<img class='gif' src='../static/img/${img}/${img}${id}.gif'>`);
+
+      // `<img class='gif' src='../static/img/${type}/${id}.gif'>`
+    }
+
+    var text = ''
+    if (data['userID'] == myID){
+      text = "<div class='local_box'><div class='local_text'>"
+      text += `${msg}</div></div>`
+    }
+    else{
+      text += `<div class='remote_box'><div class='remote_text'>`
+      text += `${msg}</div></div>`
+    }
+    console.log('text', text)
+
+
+    $("#content").append(text)
+    $("#content").scrollTop($("#content")[0].scrollHeight);
+
+    /*
+    count = (msg.split("<img class=")).length - 1
+      for (i = 0; i < count; i++) {
+        start = msg.search("<img class=")
+        end = msg.search('.gif">')
+        tmp = msg.slice(start, end + 6);
+        msg = msg.replace(tmp, "<<tiger01>>");
+      }
+      socket.emit('send_new_message', msg);*/
+
+    //data = `<img class='gif' src='../static/img/tiger/${id}.gif'>`
+    //$("#inputText").append(data);
+  })
+
+});
+
+
+function loadRoom(friendID) {
+  nowFriendID = friendID
+  $("#chatHead").html(friendID)
+
+  if (Object.keys(messageID[friendID]).length == 0){
+    socket.emit('get_room_message', friendID);
+  }
+  else{
+    var data = messageID[friendID]['text']
+    var text = ''
+    Object.keys(data).forEach(key => {
+      if (data[key]['userID'] == myID) {
+        text += "<div class='local_box'><div class='local_text'>"
+        text += `${data[key]['message']}</div></div>`
+      } else {
+        text += `<div class='remote_box'><div class='remote_text'>`
+        text += `${data[key]['message']}</div></div>`
+      }
+    });
+    $("#content").html(text)
+    $("#content").scrollTop($("#content")[0].scrollHeight);
+  } 
+}
 
 
 function sendLeft() {
@@ -29,24 +196,28 @@ $(document).ready(() => {
     msg = document.getElementById("inputText").innerHTML
     if (msg) {
       //console.log(msg)
+      
       console.log(msg.length)
-
+      /*
       today = new Date();
       data = `<div class="local_box">`
       data += "<div class='local_text'>" + msg + "</div>"
       data += `</div>`
 
       $("#content").append(data);
-      $("#content").scrollTop($("#content")[0].scrollHeight);
+      $("#content").scrollTop($("#content")[0].scrollHeight);*/
 
-      // post
       count = (msg.split("<img class=")).length - 1
       for (i = 0; i < count; i++) {
         start = msg.search("<img class=")
         end = msg.search('.gif">')
         tmp = msg.slice(start, end + 6);
-        msg = msg.replace(tmp, "<<tiger01>>");
+        var imgID = '' // ttmp
+        msg = msg.replace(tmp, "!=img=!tiger01!=/img=!");
       }
+      socket.emit('send_new_message', msg);
+
+      /*
       //console.log(msg)
       nowTime = [today.getFullYear(), today.getMonth(), today.getDate(), today.getHours(), today.getMinutes()]
       js = JSON.stringify({
@@ -55,9 +226,9 @@ $(document).ready(() => {
         'message': msg
       })
 
-      $.post("/inputText", js, function(data, status) {
+      $.post("/inputText", js, function (data, status) {
         //console.log(data, status)
-      });
+      });*/
     }
 
     var today = new Date();
@@ -72,41 +243,12 @@ $(document).ready(() => {
 })
 
 function oldMsg() {
-  if (startID <= 1) return
+  console.log('oldMsg', nowFriendID)
+  var friendID = nowFriendID
+  //messageID[friendID]['startID']
+  if (messageID[friendID]['startID'] <= 1) return
 
-  js = JSON.stringify({
-    'startID': startID,
-    'roomID': roomID
-  })
-
-  $.post("/loadOldMsg", js, function(data, status) {
-    if (data) {
-      preHeight = $("#content")[0].scrollHeight
-      preTop = $("#content")[0].scrollTop
-
-      //data = data.reverse()
-      console.log('history')
-      let text = ''
-      Object.keys(data).forEach(key => {
-        console.log(key, data[key]);
-        if (data[key]['userID'] == myID) {
-          text += "<div class='local_box'><div class='local_text'>"
-          text += `${data[key]['message']}</div></div>`
-        } else {
-          text += `<div class='remote_box'><div class='remote_text'>`
-          text += `${data[key]['message']}</div></div>`
-        }
-      });
-
-      $('#content').prepend(text)
-      startID = data[0]['id']
-
-      nowHeight = $("#content")[0].scrollHeight
-      $("#content").scrollTop(nowHeight - preHeight + preTop);
-      console.log('height1:', preHeight)
-      console.log('height2:', nowHeight)
-    }
-  });
+  socket.emit('get_old_message', {'friendID':friendID, 'startID': messageID[friendID]['startID']});
 }
 
 
@@ -133,18 +275,18 @@ $(document).ready(() => {
 
     for (i = 1; i <= 50; i++) {
       text += `<img class='gifIndex' id='tiger${i}' src='../static/img/tiger/tiger${i}.png'>`
-        //console.log(`A${i}.gif`)
+      //console.log(`A${i}.gif`)
     }
     text += '</div>'
-      //console.log(document.getElementById('sticker').offsetLeft)
-      //console.log(document.getElementById('sticker').offsetTop)
+    //console.log(document.getElementById('sticker').offsetLeft)
+    //console.log(document.getElementById('sticker').offsetTop)
     $('#stickers').html(text)
 
-    $('.gifIndex').each(function() {
-      $(this).hover(function() {
+    $('.gifIndex').each(function () {
+      $(this).hover(function () {
         path = $(this).attr('src').replace('.png', '.gif')
         $(this).attr('src', path);
-      }, function() {
+      }, function () {
         path = $(this).attr('src').replace('.gif', '.png')
         $(this).attr('src', path);
       })
@@ -172,15 +314,15 @@ function sticker_change(type) {
   text = ''
   for (i = 1; i <= 50; i++) {
     text += `<img class='gifIndex' id='${type}${i}' src='../static/img/${type}/${type}${i}.png'>`
-      //console.log(`A${i}.gif`)
+    //console.log(`A${i}.gif`)
   }
   $('#stickers_body').html(text)
 
-  $('.gifIndex').each(function() {
-    $(this).hover(function() {
+  $('.gifIndex').each(function () {
+    $(this).hover(function () {
       path = $(this).attr('src').replace('.png', '.gif')
       $(this).attr('src', path);
-    }, function() {
+    }, function () {
       path = $(this).attr('src').replace('.gif', '.png')
       $(this).attr('src', path);
     })
@@ -197,6 +339,8 @@ function sticker_change(type) {
   })
 }
 
+
+/*
 $(document).ready(() => {
   $.get("/friendList", function(data) {
     console.log(data)
@@ -207,51 +351,17 @@ $(document).ready(() => {
 
     $('#friends_body').html(text)
   })
-})
+})*/
 
-function loadRoom(friendID) {
-  nowFriendID = friendID
-  console.log(friendID)
-
-  $("#chatHead").html(friendID)
-  js = JSON.stringify(friendID)
-
-  $.post("/loadRoom", js, function(data, status) {
-    text = ''
-      //console.log(data, status)
-    roomID = data['roomID']
-    myID = data['userID']
-    data = data['msg']
-    Object.keys(data).forEach(key => {
-      console.log(key, data[key]);
-
-      if (data[key]['userID'] == myID) {
-        text += "<div class='local_box'><div class='local_text'>"
-        text += `${data[key]['message']}</div></div>`
-      } else {
-        text += `<div class='remote_box'><div class='remote_text'>`
-        text += `${data[key]['message']}</div></div>`
-      }
-    });
-    startID = data[0]['id']
-    endID = data[data.length - 1]['id']
-    nowMsg = text
-      //console.log(endID)
-    $("#content").append(text)
-    $("#content").scrollTop($("#content")[0].scrollHeight);
-    updateMsg()
-  });
-
-}
 
 function updateMsg() {
   setInterval(() => {
     if (!roomID) return
     js = JSON.stringify({ 'roomID': roomID, 'endID': endID })
-    $.post("/loadNewMsg", js, function(data, status) {
+    $.post("/loadNewMsg", js, function (data, status) {
       if (data == '') return
       text = ''
-        //console.log(data, status)
+      //console.log(data, status)
       Object.keys(data).forEach(key => {
         console.log(key, data[key]);
         if (data[key]['userID'] == myID) {
@@ -291,16 +401,3 @@ $(document).ready(() => {
 
 })
 
-$(document).ready(() => {
-  $("#forget").click(() => {
-    text = '<div id="notify_cell">'
-    text += '<div>自己想</div>'
-    text += "<img class='gif' src='../static/img/tiger/tiger50.gif'>"
-    text += '</div>'
-    document.getElementById('notifyDiv').innerHTML = text
-    window.setTimeout((() =>
-      document.getElementById('notifyDiv').innerHTML = ''
-      //console.log("Hello!") 
-    ), 5000);
-  });
-});

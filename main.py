@@ -12,8 +12,13 @@ import json
 import time
 import sql
 
-users = {'chen01': {'password': '123'},
-        'chen02': {'password': '456'}}  
+users = {
+    'chen01': {'password': '123'},
+    'chen02': {'password': '123'},
+    'anny': {'password': '123'},
+    'haha': {'password': '123'},
+    'dating': {'password': '123'},
+    }  
 
 user_room = {
     'ting':{
@@ -123,18 +128,59 @@ def loadRoom():
     friendID = data
     print(friendID)
     user = sql.Users()
-    #print(current_user.id)
+    print(current_user.id, friendID)
+    print(type(current_user.id), type(friendID))
     roomID = user.roomID(current_user.id, friendID)
     room = sql.Rooms()
     #print(roomID)
     data = room.loadMsg(roomID)
 
     data = {'msg':room.loadMsg(roomID), 'roomID':roomID, 'userID':current_user.id}
-
     return jsonify(data), 200
 
 
 #####################
+
+@socketio.event
+def get_friendID_list():
+    print('get_friendID_list', current_user.id)
+    user = sql.Users()
+    data = user.select(current_user.id, 'friendID')
+    print('data', data)
+    emit('show_friendID_list', data)
+
+@socketio.event
+def get_room_message(data):
+    friendID = data
+    user = sql.Users()
+    roomID = user.roomID(current_user.id, friendID)
+    room = sql.Rooms()
+    data = room.loadMsg(roomID)
+    for num, item in enumerate(data):
+        data[num]['time'] = str(item['time'])
+    print('show_room_message', data)
+    emit('show_room_message', data)
+
+@socketio.event
+def get_old_message(data):
+    user = sql.Users()
+    roomID = user.roomID(current_user.id, data['friendID'])
+    room = sql.Rooms()
+    data = room.history(roomID, int(data['startID']))
+    for num, item in enumerate(data):
+        data[num]['time'] = str(item['time'])
+
+    print('get_old_message', data) 
+    emit('show_old_message', data)
+
+@socketio.event
+def send_new_message(data):
+    print(data)
+    # store in database
+
+    data = {'userID':current_user.id, 'message':data, 'time':time.strftime('%X')}
+    emit('show_new_message', data) # to roomID
+
 
 @socketio.event
 def my_event(message):
@@ -190,6 +236,8 @@ def test_connect():
         room_id = user_room[user_id]['rooms'][0]
         join_room(room_id)
 
+    emit('userID', current_user.id)
+
 @socketio.on('disconnect')
 def test_disconnect():
     print('Client disconnected', request.sid)
@@ -218,4 +266,4 @@ def set_session(data):
 if __name__ == '__main__':
     #app.config['TEMPLATED_AUTO_RELOAD'] = True
     #app.run(host='0.0.0.0', port='3000', debug=True)
-    socketio.run(app)
+    socketio.run(app, host='0.0.0.0', port=3000)
