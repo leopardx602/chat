@@ -1,18 +1,29 @@
 
 import os
 import sys
-path = sys.path[0] + '/static/img/classic'
+path = sys.path[0] + '/static/img/egg'
 
 
 
 for fname in os.listdir(path):
-    #print(fname)
-    
+    print(fname)
+    #print(len(fname))
+    '''
+    if len(fname) == 8:
+        tk = fname[0:-5]
+        id = '0' + fname[-5:-4]
+        re = fname[-4:]
+        newName = tk + id + re
+        print(fname, newName)
+        os.rename(os.path.join(path, fname), os.path.join(path, newName))
+    '''
+    '''
     if '_' in fname:
         pos = fname.find('_')
         newName = fname[0:pos]+'.png'
         print(newName)
         os.rename(os.path.join(path, fname), os.path.join(path, newName))
+    '''
 
 
     '''if 'png' in fname:

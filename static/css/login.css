@@ -1,16 +1,19 @@
 body {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   background-color: #eee;
+  font-size: larger;
 }
 
+/* log in */
 #login_form {
   border-radius: 10px;
   background-color: #fff;
-  position: relative;
-  top: 200px;
-  padding: 5px;
+  position: absolute;
+
+  left: 50%;
+	top: 50%;
+	transform: translateX(-50%) translateY(-50%);
+
+  padding: 10px;
   box-shadow: 0 2px 10px #aaa;
   display: flex;
   flex-direction: column;
@@ -21,16 +24,16 @@ form>div {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin: 5px;
+  margin: 10px;
 }
 
 form>div>div {
-  margin: 5px;
+  margin: 10px;
 }
 
 input {
-  padding: 5px;
-  border-radius: 5px;
+  padding: 10px;
+  border-radius: 10px;
   border: 1px solid #dddfe2;
 }
 
@@ -54,13 +57,59 @@ button {
   color: #fff;
 }
 
-button.active,
+button:active,
 button:hover {
   cursor: pointer;
 }
 
+
+/* sign up */
+#signup_form {
+  position: fixed;
+  z-index: 2;
+  left: 50%;
+  top: 50%;
+  transform: translateX(-50%) translateY(-50%);
+
+  border-radius: 10px;
+  background-color: #ddd;
+  text-align: center;
+  padding:10px;
+}
+
+#signup_head {
+  display: flex;
+  justify-content: space-between;
+}
+#signup_head>div {
+  margin: 10px;
+}
+#signup_close:active, #signup_close:hover{
+  cursor: pointer;
+}
+
+#signup_body{
+  margin:5px;
+}
+
+#signup_body>div {
+  margin: 10px;
+}
+
+#sign_up{
+  width: 100%;
+  text-align: center;
+}
+#sign_up>button {
+  color: #fff;
+  width: 90%;
+}
+
+/* notify */
 #notifyDiv {
   position: absolute;
+  left: 50%;
+	transform: translateX(-50%);
 }
 
 #notify_cell {
@@ -94,3 +143,5 @@ button:hover {
     left: 40px;
   }
 }
+
+

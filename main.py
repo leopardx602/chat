@@ -9,25 +9,13 @@ from flask_socketio import SocketIO, emit, join_room, leave_room, \
 from flask_session import Session
 
 import json
+import threading
+
 import time
 import sql
 
-users = {
-    'chen01': {'password': '123'},
-    'chen02': {'password': '123'},
-    'anny': {'password': '123'},
-    'haha': {'password': '123'},
-    'dating': {'password': '123'},
-    }  
 
-user_room = {
-    'ting':{
-        'rooms':['room01']
-    },
-    'chen':{
-        'rooms':['room01']
-    }
-}
+users = sql.Users().get_userInfo()  # {'chen01':{'password':'123', 'nickName':''}}
 
 app = Flask(__name__)
 app.secret_key = 'secret!'   # os.urandom(16).hex()
@@ -41,6 +29,7 @@ login_manager.login_message = 'please log in first'
 Session(app)
 socketio = SocketIO(app, async_mode=None, manage_session=False)
 
+lock_signUp = threading.Lock()
 
 class User(UserMixin, object):
     def __init__(self, id=None):
@@ -71,82 +60,72 @@ def login():
         return redirect(url_for('index'))
     return render_template('login.html')
 
-
 @app.route('/logout')  
 def logout():  
     username = current_user.get_id()
     logout_user()
-    return redirect(url_for('login')) 
+    return redirect(url_for('login'))
+
+@app.route('/signup', methods = ["POST"])  # {'userID':'chen01', 'password':'123'}
+def singup():
+    global users
+    data = json.loads(request.get_data())
+    print('signup', data)
+
+    # lock start
+    lock_signUp.acquire()
+    if data['userID'] in users:
+        return 'repeat', 200
+    user = sql.Users()
+    user.add_user(data['userID'], data['password'], data['nickName'])
+
+    users = user.get_userInfo()  # update users
+    lock_signUp.release()
+
+    return 'ok', 200
+
 
 @app.route('/index')
 @login_required
 def index():
     # if current_user.is_authenticated:
-    return render_template('index.html', usrID=current_user.id)
+    return render_template('index.html', usrID=current_user.id, nickName=users[current_user.id]['nickName'])
 
-@app.route('/loadOldMsg', methods = ['POST'])
-def oldData():
-    #print(current_user.id)
-    data = request.get_data()
-    data = json.loads(data)
-    print(data)
-    room = sql.Rooms()
-    data = room.history(data['roomID'], int(data['startID']))
-    #print(data)
-    return jsonify(data), 200
-
-@app.route('/loadNewMsg', methods= ["POST"])
-def newData():
-    data = request.get_data()
-    data = json.loads(data)
-    print(data)
-    room= sql.Rooms()
-    data = room.newMsg(data['roomID'], int(data['endID']))
-    print(data)
-    return jsonify(data), 200
-
-@app.route('/inputText', methods = ['POST'])
-def inputText():
-    print(current_user.id)
-    data = request.get_data()
-    data = json.loads(data)
-    print(data)
-    return 'OK', 200
-
-@app.route('/friendList')
-def friendList():
-    print(current_user.id)
+'''
+@socketio.event
+def connect():
+    print('connected1!')
+    #emit('my_response', {'data': 'Connected', 'count': 0})
+'''
+@socketio.on('connect')
+def user_connect():
+    print('Connected!', current_user.id, request.sid)
+    # join room
     user = sql.Users()
-    #user.select(current_user.id)
-    data = user.select(current_user.id, 'friendID')
-    return jsonify(data), 200
+    rooms = user.select(current_user.id, 'roomID')  # ['room01', 'room02']
+    for roomID in rooms:
+        join_room(roomID)
 
-@app.route('/loadRoom', methods = ['POST'])
-def loadRoom():
-    data = request.get_data()
-    data = json.loads(data)
-    friendID = data
-    print(friendID)
-    user = sql.Users()
-    print(current_user.id, friendID)
-    print(type(current_user.id), type(friendID))
-    roomID = user.roomID(current_user.id, friendID)
-    room = sql.Rooms()
-    #print(roomID)
-    data = room.loadMsg(roomID)
+    # update client user infomation
+    emit('userInfo', {'userID':current_user.id, 'nickName':users[current_user.id]['nickName']})
 
-    data = {'msg':room.loadMsg(roomID), 'roomID':roomID, 'userID':current_user.id}
-    return jsonify(data), 200
+    # show invitation
+    chat = sql.Chat()
+    invitations = chat.get_invitation(current_user.id)  # ['chen01', 'chen02']
+    emit('show_invitation', invitations)
 
-
-#####################
+@socketio.on('disconnect')
+def user_disconnect():
+    print('Client disconnected', request.sid)
+    #leave_room(message['room'])
+    #close_room(message['room'])
 
 @socketio.event
 def get_friendID_list():
     print('get_friendID_list', current_user.id)
     user = sql.Users()
-    data = user.select(current_user.id, 'friendID')
-    print('data', data)
+    data = user.get_friends(current_user.id)  # [{'friendID':'chen01', 'nickName':'Chen'}, {...}]
+    print('get_friendID_list', data)
     emit('show_friendID_list', data)
 
 @socketio.event
@@ -174,46 +153,57 @@ def get_old_message(data):
     emit('show_old_message', data)
 
 @socketio.event
-def send_new_message(data):
+def send_new_message(data):  # {'friendID:'chen02', 'message':'hello'}
     print(data)
     # store in database
+    user = sql.Users()
+    roomID = user.roomID(current_user.id, data['friendID'])
 
-    data = {'userID':current_user.id, 'message':data, 'time':time.strftime('%X')}
-    emit('show_new_message', data) # to roomID
+    room = sql.Rooms()
+    room.insert(roomID, current_user.id, data['message'])
 
-
-@socketio.event
-def my_event(message):
-    print('my_event', current_user.id)
-    emit('my_response',
-         {'data': message['data'], 'count': 0})
-
-@socketio.event
-def join(message):
-    join_room(message['room'])
-    emit('my_response',
-         {'data': 'In rooms: ' + ', '.join(rooms()), 'count': 0})
+    data = {'sendID':current_user.id, 'recvID':data['friendID'], 'message':data['message'], 'time':time.strftime('%X')}
+    #emit('show_new_message', data) # to roomID
+    emit('show_new_message', data, to = roomID)
 
 @socketio.event
-def leave(message):
-    leave_room(message['room'])
+def add_invitation(invitedID):  # 'chen02'
+    if invitedID not in users:
+        emit('client_event', {'event':'invite_message', 'data':'No this ID'})
+        return
 
-    emit('my_response',
-         {'data': 'In rooms: ' + ', '.join(rooms()),
-          'count': 0})
+    user = sql.Users()
+    friend_list = user.select(current_user.id, 'friendID')
+    if invitedID in friend_list:
+        emit('client_event', {'event':'invite_message', 'data':'Already friend'})
+        return
 
-@socketio.on('close_room')
-def on_close_room(message):
-    emit('my_response', {'data': 'Room ' + message['room'] + ' is closing.',
-                         'count': 0},
-         to=message['room'])
-    close_room(message['room'])
+    chat = sql.Chat()
+    repeat = chat.check_repeat_invitation(current_user.id, invitedID)
+    if repeat:
+        emit('client_event', {'event':'invite_message', 'data':'Already invited, waiting for reply!'})
+        print('Already invited')
+        return
+
+    chat.add_invitation(current_user.id, invitedID, users[current_user.id]['nickName'])
+    emit('client_event', {'event':'invite_message', 'data':'OK!'})
 
 @socketio.event
-def my_room_event(message):
-    emit('my_response',
-         {'data': message['data'], 'count': 0},
-         to=message['room'])
+def reply_invitation(data):  # {'applicantID':'chen01', 'reply':True}
+    print('reply_invitation', data)
+
+    chat = sql.Chat()
+    if data['reply']:
+        chat.confirm_invitation(current_user.id, data['applicantID'], users[current_user.id]['nickName'], users[data['applicantID']]['nickName'])
+        emit('client_event', {'event':'invite_message', 'data':'accept {}'.format(data['applicantID'])})
+    else:
+        chat.delete_invitation(data['applicantID'], current_user.id)
+        emit('client_event', {'event':'invite_message', 'data':'reject {}'.format(data['applicantID'])})
+    
+    # update user invitation list
+    invitations = chat.get_invitation(current_user.id)  # ['chen01', 'chen02']
+    emit('show_invitation', invitations)
+
 
 @socketio.event
 def disconnect_request():
@@ -223,45 +213,6 @@ def disconnect_request():
     emit('my_response',
          {'data': 'Disconnected!', 'count': 0},
          callback=can_disconnect)
-
-@socketio.event
-def connect():
-    emit('my_response', {'data': 'Connected', 'count': 0})
-
-@socketio.on('connect')
-def test_connect():
-    print('Connected!', request.sid)
-    user_id = session['_user_id']
-    if user_id in user_room:
-        room_id = user_room[user_id]['rooms'][0]
-        join_room(room_id)
-
-    emit('userID', current_user.id)
-
-@socketio.on('disconnect')
-def test_disconnect():
-    print('Client disconnected', request.sid)
-
-@socketio.event
-def get_session():
-    #print('session', session)
-    #print('get-session:', session.get('value', ''), request.sid)
-    #print('user:', current_user.id if current_user.is_authenticated else 'anonymous')
-    emit('refresh-session', {
-        'session': session.get('value', ''),
-        'user': current_user.id
-            if current_user.is_authenticated else 'anonymous'
-    })
-
-@socketio.event
-def set_session(data):
-    if 'session' in data:
-        session['value'] = data['session']
-    elif 'user' in data:
-        if data['user'] is not None:
-            login_user(User(data['user']))
-        else:
-            logout_user()
 
 if __name__ == '__main__':
     #app.config['TEMPLATED_AUTO_RELOAD'] = True

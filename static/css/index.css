@@ -34,6 +34,7 @@
   }
 }
 
+
 #top {
   display: flex;
   justify-content: space-between;
@@ -273,33 +274,6 @@ img {
   text-shadow: 0 0 10px #FFFFFF;
   box-shadow: inset 0 0 20px #FFFFFF;
   cursor: pointer;
-}
-
-#addFriendForm {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 200px;
-  background-color: #4EFEB3;
-  border-radius: 10px;
-}
-
-#addFriendForm_head {
-  display: flex;
-}
-
-#addFriendForm_title {
-  position: relative;
-  left: 5px;
-}
-
-#addFriendForm_close {
-  position: relative;
-  left: 50px;
-}
-
-#addFriendForm>div {
-  margin: 5px;
 }
 
 #centerDiv {

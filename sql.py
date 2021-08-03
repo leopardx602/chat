@@ -5,7 +5,7 @@ import traceback
 
 from config import db_config
 
-lock = threading.Lock()
+lock_room = threading.Lock()
 
 class SQL():
     def __init__(self):
@@ -46,6 +46,68 @@ class SQL():
             tables.append(data['Tables_in_users'])
         return tables
 
+class Chat(SQL):
+    def __init__(self):
+        self.database = 'chat_info'
+
+    def get_invitation(self, userID):
+        self.connect()
+        sql = f"select applicantID, applicantNickName from invitation where invitedID='{userID}'"
+        self.cursor.execute(sql)
+        results = self.cursor.fetchall()
+        self.db.close()
+        print('get_invitation', results)
+        return results  # [{'applicantID':'chen01', 'applicantNickName':'Chen'}, {...}]
+        
+    def add_invitation(self, applicantID, invitedID, applicantNickName):
+        sql = f"""INSERT INTO invitation(applicantID, invitedID, applicantNickName)
+            VALUES ('{applicantID}', '{invitedID}', '{applicantNickName}')"""
+        self.command(sql)
+
+    def check_repeat_invitation(self, applicantID, invitedID):
+        self.connect()
+        sql = f"select invitedID from invitation where applicantID='{applicantID}'"
+        self.cursor.execute(sql)
+        results = self.cursor.fetchall()
+        self.db.close()
+        #print('check_repeat_invitation', results)
+        invited_list = []
+        for item in results:
+            invited_list.append(item['invitedID'])
+
+        if invitedID in invited_list: return True
+        return False
+
+    def confirm_invitation(self, userID, friendID, userNickName, friendNickName): 
+        # build roomID from history
+        lock_room.acquire()
+        self.connect()
+        sql = f"select * from room_info"
+        self.cursor.execute(sql)
+        results = self.cursor.fetchone()  # {'roomID':0, 'delete_room':0}
+        self.db.close()
+        roomID = 'room{}'.format(results['roomID']+1)
+        sql = f"UPDATE room_info SET roomID='{results['roomID']+1}' WHERE roomID='{results['roomID']}'"
+        self.command(sql)
+        lock_room.release()
+
+        # build room
+        room = Rooms()
+        room.create(roomID)
+        
+        # add friend and roomID
+        user = Users()
+        user.add_friend(userID, friendID, roomID, friendNickName)
+        user.add_friend(friendID, userID, roomID, userNickName)
+
+        # delete invitation 
+        self.delete_invitation(friendID, userID)
+        
+
+    def delete_invitation(self, applicantID, invitedID):
+        sql = f"DELETE FROM invitation WHERE applicantID='{applicantID}' AND invitedID='{invitedID}';"
+        self.command(sql)
+
 class Users(SQL):
     def __init__(self):
         self.database = 'users'
@@ -58,6 +120,46 @@ class Users(SQL):
           PRIMARY KEY (friendID)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8;"""
         self.command(sql)
+
+    def create_user_info(self):
+        sql = f"""CREATE TABLE user_info (
+          userID char(20) NOT NULL,
+          password char(20) NOT NULL,
+          nickName char(20) DEFAULT NULL,
+          PRIMARY KEY (userID)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8;"""
+        self.command(sql)
+
+    def add_user(self, userID, password, nickName):
+        self.create(userID)
+        sql = f"""INSERT INTO user_info(userID, password, nickName)
+            VALUES ('{userID}', '{password}', '{nickName}')"""
+        self.command(sql)
+
+    def get_userInfo(self):  # {'chen01':{'password':'123', 'nickName':''}}
+        self.connect()
+        sql = f"SELECT * from user_info"
+        self.cursor.execute(sql)
+        results = self.cursor.fetchall()
+        self.db.close()
+        users = {}
+        for item in results:
+            users[item['userID']] = {'password':item['password'], 'nickName':item['nickName']}
+        return users
+
+    def add_friend(self, userID, friendID, roomID, nickName):
+        sql = f"""INSERT INTO {userID}(friendID, roomID, nickName)
+            VALUES ('{friendID}', '{roomID}', '{nickName}')"""
+        self.command(sql)
+
+    def get_friends(self, userID):
+        self.connect()
+        sql = f"""SELECT friendID, nickName from {userID}"""
+        self.cursor.execute(sql)
+        results = self.cursor.fetchall()
+        self.db.close()
+        print('get_friend', results)
+        return results  # [{'friendID':'chen01', 'nickName':'Chen'}, {...}]
 
     def insert(self, userID, friendID, roomID):
         sql = f"""INSERT INTO {userID}(friendID, roomID)
@@ -93,12 +195,23 @@ class Users(SQL):
         #print(data)
         return data[0]['roomID']
 
+    def userList(self):
+        self.connect()
+        sql = f"show tables"
+        self.cursor.execute(sql)
+        results = self.cursor.fetchall()
+        self.db.close()
+        data = []
+        for key in results:
+            data.append(key['Tables_in_users'])
+        return data
+
 class Rooms(SQL):
     def __init__(self):
         self.database = 'rooms'
 
-    def create(self, userID):
-        sql = f"""CREATE TABLE {userID} (
+    def create(self, roomID):
+        sql = f"""CREATE TABLE {roomID} (
           id int(10) NOT NULL AUTO_INCREMENT,
           userID char(20) NOT NULL,
           message text DEFAULT NULL,
@@ -164,6 +277,18 @@ class Rooms(SQL):
         self.db.close()
         return results
 
+    def all_room(self):
+        self.connect()
+        sql = 'show tables;'
+        self.cursor.execute(sql)
+        results = self.cursor.fetchall()
+        self.db.close()
+        rooms = []
+        for key in results:
+            rooms.append(key['Tables_in_rooms'])
+        print('all room', rooms)
+
+
 class Invitation(SQL):
     def __init__(self):
         self.database = 'invitation'
@@ -175,30 +300,17 @@ class Invitation(SQL):
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8;""".format(userID)
         self.command(sql)
 
-def signUp(userID):
-    lock.acquire()
-    user = Users()
-    invi = Invitation()
-    users = []
-    for data in user.command('show tables'):
-        users.append(data['Tables_in_users'])
-    if userID not in users:
-        user.create(userID)
-        invi.create(userID)
-    else:
-        print(f'{userID} repeated')
-    lock.release()
-
-def addFriend(userID, otherID):
-    user = Users()
-    users = user.showTable()
-    if otherID in users:
-        pass
-    print(data)
-
 if __name__ == '__main__':
 
     user = Users()
+    user.get_userInfo()
+    #user.add_user('chen01', '123')
+    #user.add_user('chen02', '123')
+    #user.add_user('anny', '123')
+    #user.add_user('dating', '123')
+
+    #user.create2()
+    #user.userList()
     #user.create('chen01')
     #user.create('chen02')
     #user.create('anny')
@@ -221,12 +333,11 @@ if __name__ == '__main__':
     #invi.create('chen01')
     #invi.create('chen02')
 
-    #addFriend(1, 2)
-
     #user = Users()
     #user.command('ALTER TABLE chen01 ADD nickName VARCHAR(20);')
 
     room = Rooms()
+    #room.all_room()
     #room.create('room01')
     #room.create('room02')
     #room.insert('room01', 'chen01', 'Hello, I am chen01.')
@@ -245,6 +356,10 @@ if __name__ == '__main__':
     
     #room.drop('room01')
     #room.select('room01')
+
+    chat = Chat()
+    chat.confirm_invitation('chen01', 'anny0124', 'chen01', 'chen01')
+    #chat.delete_invitation('chen01', 'anny0124')
 
 
     #db.close()

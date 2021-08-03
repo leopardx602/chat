@@ -21,11 +21,15 @@
 <div id="notifyDiv"></div>
 <div id="centerDiv"></div>
 
+
 <body style="background-color: #bbb;">
+  
+  {% include 'invitation.html' %}
+
   <div id="top">
     <div id="topRight"></div>
     <div id="topLeft">
-      <div>NAME</div>
+      <div>{{nickName}}</div>
       <div>{{usrID}}</div>
       <div id="logout"><a href="/logout">logout</a></div>
     </div>
@@ -61,7 +65,7 @@
       </div>
       <div id="inputText" contenteditable="true"></div>
       <div>
-        <button id="send">Send</button>
+        <button id="send" disabled>Send</button>
       </div>
 
     </div>
