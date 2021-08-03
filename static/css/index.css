@@ -1,3 +1,13 @@
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
 #notifyDiv {
   position: absolute;
 }
@@ -34,10 +44,10 @@
   }
 }
 
-
 #top {
   display: flex;
   justify-content: space-between;
+  border-bottom: 1px solid #000;
 }
 
 #topLeft {
@@ -49,31 +59,47 @@
   margin: 5px;
 }
 
+#bottom {
+  text-align: center;
+  padding: 5px;
+  border-top: 1px solid #000;
+}
+
 #content {
+  flex: 1;
+  /*height: 250px;*/
   padding: 5px;
   width: 95%;
-  height: 250px;
   border: 2px solid #000;
   overflow: auto;
-  margin: 10px;
+  margin: 5px;
   font-size: 16px;
   font-weight: bold;
 }
 
+#inputTable {
+  display: flex;
+  align-items: center;
+  margin: 5px;
+}
+
 #inputText {
-  margin: 10px;
   padding: 5px;
   width: 95%;
-  height: 90px;
+  min-height: 32px;
   border: 2px solid #000;
   font-size: 16px;
   font-weight: bold;
   overflow: auto;
+}
+
+#send {
+  margin: 5px;
 }
 
 .remote_text {
   word-break: break-all;
-  max-width: 150px;
+  max-width: 300px;
   width: auto;
   display: inline-block !important;
   display: inline;
@@ -100,7 +126,7 @@
 
 .local_text {
   word-break: break-all;
-  max-width: 150px;
+  max-width: 300px;
   width: auto;
   display: inline-block !important;
   display: inline;
@@ -166,45 +192,56 @@ img {
 }
 
 #chat {
-  border: 1px solid red;
-  width: 550px;
+  flex: 1;
   display: flex;
   flex-direction: column;
-}
-
-#chat>div {
   margin: 5px;
 }
 
 #chatHead {
-  height: 20px;
+  margin: 5px;
+  display: flex;
+  align-items: center;
+}
+
+#chat_headshot {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #aaa;
+  margin-right: 10px;
 }
 
 #tools {
   width: 95%;
   display: flex;
-  justify-content: flex-end;
 }
 
 #tools>div {
-  margin: 3px;
+  margin: 1px;
 }
 
 #sticker {
   position: relative;
 }
 
-#stickers {
+#stickerList {
   display: flex;
   flex-direction: column;
+  bottom: 130px;
+  position: fixed;
+  padding: 5px;
+  max-width: 320px;
+  text-align: start;
+  background-color: rgba(100, 100, 100, 0.4);
 }
 
-#stickers_head {
+#stickerList_head {
   display: flex;
   width: 100%;
 }
 
-#stickers_head>div {
+#stickerList_head>div {
   display: flex;
 }
 
@@ -217,66 +254,84 @@ img {
   justify-content: flex-end;
 }
 
-#stickers_head>div>div {
+#stickerList_head>div>div {
   padding-left: 3px;
   padding-right: 3px;
   font-size: 20px;
   font-weight: bold;
 }
 
-#stickers_head>div>div.active,
-#stickers_head>div>div:hover {
+#stickerList_head>div>div.active,
+#stickerList_head>div>div:hover {
   text-shadow: 0 0 10px #FFFFFF;
   cursor: pointer;
 }
 
-#stickers {
-  /*border: 1px solid red;*/
-  position: fixed;
-  padding: 5px;
-  max-width: 450px;
-  text-align: start;
-  background-color: rgba(100, 100, 100, 0.4);
-}
-
 #shell {
+  flex: 1;
   display: flex;
 }
 
 #friends {
-  width: 150px;
-  border: 1px solid red;
+  width: 360px;
+  border-right: 1px solid #000;
 }
 
 #friends_head {
-  background-color: #777;
-  text-align: center;
-  padding: 5px;
+  padding: 10px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  font-size: 30px;
+  border-bottom: 1px solid #000;
 }
 
 #friends_body {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
+  height: 100%;
 }
 
-#friends_body>div {
+.friend_cell {
+  display: flex;
   padding: 5px;
-  flex: 1;
+  height: 72px;
+  align-items: center;
+}
+
+.friend_name {
   text-align: center;
+  font-size: 20px;
+}
+
+.friend_message {
+  font-weight: normal;
+}
+
+.friend_head {
+  width: 56px;
+  height: 56px;
+  border-radius: 56px;
+  background-color: aquamarine;
+  margin-right: 10px;
 }
 
 #friends_body>div.active,
 #friends_body>div:hover {
-  text-shadow: 0 0 10px #FFFFFF;
-  box-shadow: inset 0 0 20px #FFFFFF;
+  box-shadow: inset 0 0 10px #333;
   cursor: pointer;
 }
 
 #centerDiv {
   position: absolute;
   top: 300px;
+}
+
+.icon {
+  border-radius: 50%;
+  padding: 3px;
+}
+
+.icon:active,
+.icon:hover {
+  cursor: pointer;
+  background-color: #aaa;
 }
