@@ -1,19 +1,15 @@
 from flask import Flask, render_template, url_for, redirect, jsonify, request,\
     session, request, copy_current_request_context
-
 from flask_login import LoginManager, UserMixin, login_user, current_user, login_required, logout_user  
-
 from flask_socketio import SocketIO, emit, join_room, leave_room, \
     close_room, rooms, disconnect
-
 from flask_session import Session
 
 import json
+import time
 import threading
 
-import time
 import sql
-
 
 users = sql.Users().get_userInfo()  # {'chen01':{'password':'123', 'nickName':''}}
 
@@ -51,7 +47,6 @@ def init():
 def login():  
     if request.method == 'GET':  
         return render_template('login.html')
-
     username = request.form['username']  
     if username in users and request.form['password'] == users[username]['password']: 
         user = User()
@@ -62,7 +57,6 @@ def login():
 
 @app.route('/logout')  
 def logout():  
-    username = current_user.get_id()
     logout_user()
     return redirect(url_for('login'))
 
@@ -78,12 +72,9 @@ def singup():
         return 'repeat', 200
     user = sql.Users()
     user.add_user(data['userID'], data['password'], data['nickName'])
-
     users = user.get_userInfo()  # update users
     lock_signUp.release()
-
     return 'ok', 200
-
 
 @app.route('/index')
 @login_required
@@ -114,6 +105,12 @@ def user_connect():
     invitations = chat.get_invitation(current_user.id)  # ['chen01', 'chen02']
     emit('show_invitation', invitations)
 
+    # show friends
+    user = sql.Users()
+    data = user.get_friends(current_user.id)  # [{'friendID':'chen01', 'nickName':'Chen'}, {...}]
+    print('get_friendID_list', data)
+    emit('show_friendID_list', data)
+
 @socketio.on('disconnect')
 def user_disconnect():
     print('Client disconnected', request.sid)
@@ -121,15 +118,7 @@ def user_disconnect():
     #close_room(message['room'])
 
 @socketio.event
-def get_friendID_list():
-    print('get_friendID_list', current_user.id)
-    user = sql.Users()
-    data = user.get_friends(current_user.id)  # [{'friendID':'chen01', 'nickName':'Chen'}, {...}]
-    print('get_friendID_list', data)
-    emit('show_friendID_list', data)
-
-@socketio.event
-def get_room_message(data):
+def get_room_message(data):  # 'chen01'
     friendID = data
     user = sql.Users()
     roomID = user.roomID(current_user.id, friendID)
@@ -158,12 +147,11 @@ def send_new_message(data):  # {'friendID:'chen02', 'message':'hello'}
     # store in database
     user = sql.Users()
     roomID = user.roomID(current_user.id, data['friendID'])
-
     room = sql.Rooms()
     room.insert(roomID, current_user.id, data['message'])
 
+    # send to the room
     data = {'sendID':current_user.id, 'recvID':data['friendID'], 'message':data['message'], 'time':time.strftime('%X')}
-    #emit('show_new_message', data) # to roomID
     emit('show_new_message', data, to = roomID)
 
 @socketio.event

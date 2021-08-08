@@ -1,7 +1,0 @@
-#{'msg': [{'id': 1, 'userID': 'chen01', 'message': 'Hello, I am chen01.', 'time': datetime.datetime(2021, 7, 30, 10, 12, 15)}, {'id': 2, 'userID': 'chen02', 'message': 'Hello, I am chen02.', 'time': datetime.datetime(2021, 7, 30, 10, 12, 40)}, {'id': 3, 'userID': 'chen02', 'message': 'How do you do?', 'time': datetime.datetime(2021, 7, 30, 10, 13, 57)}, {'id': 4, 'userID': 'chen01', 'message': 'Not bad, how about you?', 'time': datetime.datetime(2021, 7, 30, 10, 13, 57)}, {'id': 5, 'userID': 'chen02', 'message': 'Me too', 'time': datetime.datetime(2021, 7, 30, 10, 13, 57)}], 'roomID': 'room01', 'userID': 'chen01'}
-#{'msg': [{'id': 1, 'userID': 'chen01', 'message': 'Hello, I am chen01.', 'time': datetime.datetime(2021, 7, 30, 10, 12, 15)}, {'id': 2, 'userID': 'chen02', 'message': 'Hello, I am chen02.', 'time': datetime.datetime(2021, 7, 30, 10, 12, 40)}, {'id': 3, 'userID': 'chen02', 'message': 'How do you do?', 'time': datetime.datetime(2021, 7, 30, 10, 13, 57)}, {'id': 4, 'userID': 'chen01', 'message': 'Not bad, how about you?', 'time': datetime.datetime(2021, 7, 30, 10, 13, 57)}, {'id': 5, 'userID': 'chen02', 'message': 'Me too', 'time': datetime.datetime(2021, 7, 30, 10, 13, 57)}], 'roomID': 'room01', 'userID': 'chen01'}
-
-import datetime
-
-tmp = datetime.datatime.now()
-print(tmp)

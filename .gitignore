@@ -1,2 +1,4 @@
 log/*
 config/*
+flask_session/*
+static/img/*

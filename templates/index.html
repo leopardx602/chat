@@ -17,9 +17,8 @@
 <div id="notifyDiv"></div>
 <div id="centerDiv"></div>
 
-
 <body>
-
+  <div id="shadow" style="display: none;"></div>
   {% include 'invitation.html' %}
 
   <div id="top">
@@ -31,10 +30,11 @@
     </div>
   </div>
 
-  <div id="shell">
+  <div id="mid">
+
     <div id="friends">
       <div id="friends_head">
-        <div>
+        <div id="friends_title">
           Friends
         </div>
         <div id='addFriend' class="btn icon">
@@ -47,13 +47,14 @@
     <div id="chat">
       <div id="chatHead">
         <div id="chat_headshot"><img src='../static/img/tiger/tiger01.png'></div>
-        <div class="friend_name">Welcome!</div>
+        <div id="chat_name" class="friend_name">Welcome!</div>
       </div>
 
       <div id="content">
       </div>
+      
       <div id="tools">
-        <div class="icon">
+        <div id="file" class="icon">
           <i class="fas fa-paperclip" style="font-size: 25px;"></i>
         </div>
         <div id="photo" class="icon">
@@ -66,12 +67,13 @@
       </div>
       <div id="inputTable">
         <div id="inputText" contenteditable="true"></div>
-        <div><button id="send" disabled>Send</button></div>
+        <!--<div id="btn_send"><button id="send" disabled>Send</button></div>!-->
+        <div id="btn_send" class="btn icon"><i class="fas fa-paper-plane"></i></div>
       </div>
 
     </div>
   </div>
-  <div id="bottom">copyright Chun-Ting Chen</div>
+  <div id="bottom">&copy Copyright Chun-Ting Chen</div>
 
 </body>
 
@@ -79,7 +81,7 @@
   // limit inputut text length < 100
   document.querySelector('#inputText').addEventListener("keypress", function(event) {
     //console.log(this.innerText.length)
-    if (this.innerText.length >= 100) {
+    if (this.innerText.length >= 1000) {
       event.preventDefault();
       //this.innerHTML = this.innerHTML.substr(0,10);
       //this.blur();

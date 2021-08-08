@@ -8,8 +8,9 @@
   width: 250px;
   border-radius: 10px;
   padding: 8px;
-  background-color: #4EFEB3;
   text-align: center;
+  box-shadow: 0 0 10px #000;
+  background-color: #fff;
 }
 
 #addFriendForm_head {
@@ -43,12 +44,11 @@
 }
 #addFriendForm_body_invitation>div{
   display:flex;
+  align-items:center;
   justify-content: space-between;
   padding:5px;
   margin:5px;
-
-  align-items:center;
-  background-color: #93FF93;
+  background-color: rgba(80, 80, 80, 0.6);;
 }
 #addFriendForm_body_invitation>div>div>button{
   margin:3px;
